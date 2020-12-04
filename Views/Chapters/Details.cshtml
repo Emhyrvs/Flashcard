@@ -1,0 +1,111 @@
+﻿@model Flashcards.Models.Chapter
+
+@{
+    ViewBag.Title = "Details";
+    var fileName = "";
+    if (IsPost)
+    {
+        var fileSavePath = "";
+        var uploadedFile = Request.Files[0];
+        fileName = Path.GetFileName(uploadedFile.FileName);
+        fileSavePath = Server.MapPath("~/App_Data/UploadedFiles/" +
+          fileName);
+        uploadedFile.SaveAs(fileSavePath);
+    }
+}
+
+
+
+    <table class="table">
+        <tr>
+            <th>Flashcard</th>
+            <form action="~/FlashCards/Index" method="get">
+
+                <input type="hidden" name="page" placeholder="super" />
+
+                <input type="hidden" name="nr" value=@Model.ID />
+                <input type="submit" value="Start FlashCard" />
+            </form>
+        </tr>
+        <table class="table">
+            <tr>
+                <th>Take test </th>
+                <form action="~/FlashCards/Test" method="get">
+
+                    <input type="hidden" name="page" placeholder="super" />
+
+                    <input type="hidden" name="nr" value=@Model.ID />
+                    <input type="submit" value="Start Test" />
+                </form>
+            </tr>
+
+            <table class="table">
+                <tr>
+                    <th>Flashcard</th>
+                    <form action="~/Chapters/Statistic" method="get">
+
+                        <input type="hidden" name="id" value=@Model.ID />
+                        <input type="submit" value="Show Statistic" />
+                    </form>
+                </tr>
+
+
+                @foreach (var item in Model.FlashCards)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Word1)
+                        </td>
+                        <td>
+                            <img src="~/images/@item.Image" />
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Word1)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Word2)
+                        </td>
+                        @if (User.Identity.Name == Model.UserID || User.IsInRole("Admin"))
+                        {
+                            <td>
+                                <a href="@Url.Action("Delete" + "/" + item.ID, "FlashCards")">
+                                    Delete
+                                    <a />
+                                    <a href="@Url.Action("Edit" + "/" + item.ID, "FlashCards")">
+                                        Edit
+                                        <a />
+                            </td>
+                        }
+                    </tr>
+
+                }
+                <div></div>
+
+
+                @using (Html.BeginForm("Upload", "Chapters", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    <span>Select File:</span>
+                    <input type="file" name="postedFile" />
+                    <hr />
+                    <input type="hidden" name="Id" value=@Model.ID />
+                    <input type="submit" value="Upload" />
+                    <br />
+                    <span style="color:green">@ViewBag.Message</span>
+                }
+            </table>
+
+            @using (Html.BeginForm("AddFlashCard", "Chapters", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <input type="text" name="Word1" placeholder="Word1" />
+
+                <input type="text" name="Word2" placeholder="Word2" />
+
+                <input type="file" name="Imagefile" />
+                <input type="hidden" name="ID" value=@Model.ID />
+                <input type="submit" value="Add Flashcard" />
+            }
+            </form>
+            <p>
+                @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
+                @Html.ActionLink("Back to List", "Index")
+            </p>

@@ -1,0 +1,41 @@
+﻿@model IEnumerable<Flashcards.Models.Question>
+
+@{
+    ViewBag.Title = "Sats";
+}
+
+<h2>Sats</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <td>Word1</td>
+        <td>Word2</td>
+        <td>Score</td>
+    </tr>
+    @foreach (var item in Model)
+    {
+<tr>
+  
+        <td>
+            @Html.DisplayFor(model => item.flashCard.Word1)
+        </td>
+
+    <td>
+        @Html.DisplayFor(model => item.flashCard.Word2)
+    </td>
+    
+    <td>
+        @Html.DisplayFor(modelItem => item.Score)
+    </td>
+
+
+</tr>
+    }
+
+
+
+
+    </table>

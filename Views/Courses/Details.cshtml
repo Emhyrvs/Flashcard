@@ -1,0 +1,61 @@
+﻿@model Flashcards.Models.Course
+
+@{
+    ViewBag.Title = "Chapters";
+}
+
+
+
+<table class="table">
+    <tr>
+        <th>Chapters</th>
+    </tr>
+    @if (User.Identity.Name == Model.IDUSER || User.IsInRole("Admin"))
+    {
+    
+<form action="~/Courses/AddChapter" method="get">
+
+    <input type="text" name="Name" place <placeholder ="name your chapter" />
+
+    <input type="hidden" name="Id" value=@Model.ID />
+    <input type="submit" value="Add Chapter " />
+</form>
+<a />
+    }
+@foreach (var item in Model.Chapters)
+{
+    <tr>
+        <td>
+            <a href="@Url.Action("Details" + "/" + item.ID, "Chapters")">
+                @Html.DisplayFor(modelItem => item.Name)
+                <a />
+        </td>
+        @if (User.Identity.Name == Model.IDUSER || User.IsInRole("Admin"))
+        {
+            <td>
+                <a href="@Url.Action("Delete" + "/" + item.ID, "Chapters")">
+                    Delete 
+                    <a />
+                    <a href="@Url.Action("Edit" + "/" + item.ID, "Chapters")">
+                        Edit 
+                        <a />
+            </td>
+        }
+
+
+    </tr>
+}
+</table>
+ <p>
+     @if (User.Identity.Name == Model.IDUSER || User.IsInRole("Admin"))
+     {
+
+     @Html.ActionLink("Delete", "Delete", new { id = Model.ID })
+         @Html.DisplayText("|");
+     @Html.ActionLink(" Delete", "Delete", new { id = Model.ID })
+
+         @Html.DisplayText("|");
+     @Html.ActionLink(" Back to List", "Index")
+     }
+
+ </p>
