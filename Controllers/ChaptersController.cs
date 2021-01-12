@@ -17,6 +17,8 @@ using System.Web.Services.Description;
 using System.Collections;
 using PagedList;
 using System.Drawing;
+using System.Dynamic;
+using Antlr.Runtime.Tree;
 
 namespace Flashcards.Controllers
 {
@@ -31,31 +33,41 @@ namespace Flashcards.Controllers
         {
             return View(db.Chapters.ToList());
         }
-        public ActionResult Statistic(int? id )
+        public ActionResult Statistic(int? id,int? user )
         {
-            if(id == null)
+            String username;
+            if (user == null)
+            {
+                username = User.Identity.Name;
+            }
+            else
+            {
+                username = db.Profiles.Find(user).UserName;
+            }
+            if (id == null)
             {
 
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
             Chapter chapter = db.Chapters.Find(id);
+            var flashcard = chapter.FlashCards.Select(a=>a.ID);
             
             
                 if(chapter == null)
                 {
                    return HttpNotFound();
                 }
-            List<Answer> answers = db.Answers.Where<Answer>(a => a.UserID == User.Identity.Name).ToList();
-            foreach(var a in answers)
-            {
+            List<Answer> answers = db.Answers.Where<Answer>(a => a.UserID == username && flashcard.Contains(a.FlashCard.ID)).ToList();
+            
+          
+            dynamic mymodel = new ExpandoObject();
+            mymodel.Answers = answers;
+            mymodel.Users = db.Profiles.ToList();
+            ViewData["id"] = id;
+            return View(mymodel);
 
-                if(!chapter.FlashCards.Exists(b=>b.ID==a.FlashCard.ID))
-                    {
-                    answers.Remove(a);
-                }
-            }
 
-            return View(answers);
+            
             
         }
 
@@ -185,12 +197,13 @@ public ActionResult Create(int id)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Edit([Bind(Include = "ID,Name")] Chapter chapter)
-        {
+        { 
             if (ModelState.IsValid)
             {
+                Course course = db.Courses.Where(a=>a.Chapters.Select(b=>b.ID).Contains(chapter.ID)).First();
                 db.Entry(chapter).State = EntityState.Modified;
                 db.SaveChanges();
-                return RedirectToAction("Index");
+                return RedirectToAction("Details/"+course.ID,"Courses");
             }
             return View(chapter);
         }
@@ -200,6 +213,7 @@ public ActionResult Create(int id)
         {
             if (id == null)
             {
+               
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
             Chapter chapter = db.Chapters.Find(id);
@@ -216,9 +230,12 @@ public ActionResult Create(int id)
         public ActionResult DeleteConfirmed(int id)
         {
             Chapter chapter = db.Chapters.Find(id);
+            chapter.FlashCards.Clear();
+            Course course = db.Courses.Where(a => a.Chapters.Select(b => b.ID).Contains(chapter.ID)).First();
+           
             db.Chapters.Remove(chapter);
             db.SaveChanges();
-            return RedirectToAction("Index");
+            return RedirectToAction("Details/" + course.ID, "Courses");
         }
 
         protected override void Dispose(bool disposing)

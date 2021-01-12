@@ -1,0 +1,102 @@
+﻿@model IEnumerable<Flashcards.Models.FlashCard>
+
+@{
+    ViewBag.Title = "Test";
+    var Id = ViewData["ID"] as String;
+    var Idc = ViewData["IDCH"] as String;
+    var FlashCard = Model.ToList();
+    var word1 = FlashCard.Find(i => i.ID == Int64.Parse(Id));
+    var counter = 0;
+}
+<h2 style="text-align:center">Test</h2>
+
+
+<p class="h1"><div id="timer">180</div></p>
+
+
+
+
+<div id="myFrame">
+    <p class="h1"> @Html.DisplayFor(modelItem => word1.Word1)</p>
+</div>
+<br/>
+<ul class="questions">
+
+    @foreach (var item in Model)
+    {
+
+
+     
+
+        <li>
+
+            <form action="~/FlashCards/Test" method="post">
+
+
+
+                <input type="hidden" name="id" value=@item.ID />
+                <input type="hidden" name="nr" value=@Id />
+                <input type="hidden" name="IDCH" value="@Idc" />
+                <input class="ans" type="submit" value=@item.Word2 />
+        </form>
+
+
+            </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        }
+    </ul>
+        <br/>
+            
+       
+
+
+
+
+
+        <script type="text/javascript">
+        var id =  @Html.Raw(Json.Encode(Id));
+    var idc = @Html.Raw(Json.Encode(Idc));
+    var i = 180;
+    setInterval(function () {
+
+        var url = "/FlashCards/Test";
+
+        if (id > 1) {
+            var nr = id - 1;
+        }
+        else {
+            var nr = id + 1;
+        }
+
+        $.post(url, { id: id, nr:nr, IDCH: idc}, function (data) {
+            $("#msg").html(data);
+        });
+        location.reload();
+    }, 180000);
+    setInterval(function () {
+        document.getElementById("timer").innerHTML = i;
+        i--;
+    }, 1000);
+
+
+
+
+
+
+        </script>
+
+     
+

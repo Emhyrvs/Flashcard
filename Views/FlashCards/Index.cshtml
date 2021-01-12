@@ -4,56 +4,78 @@
 
 @{
     ViewBag.Title = "Flashcards";
+    var nr = ViewData["nr"];
 }
 
-<h2>Students</h2>
 
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
+
 
 @foreach (var item in Model)
 {
-    <tr>
-        <div id="word1">
-        <td>
-            @Html.DisplayFor(modelItem => item.Word1)
-        </td>
-        </div>
-    <div id="word2" style="display: none;">
-        <td>
-            @Html.DisplayFor(modelItem => item.Word2)
-        </td>
-    </div>
-    <td>
-        <a href="@Url.Action("Index", "FlashCards", new { page = Model.PageNumber, nr = 2, know = 1 })">
-        <img src="~/images/check.png" width="10px" height="10px">
-        <a />
-        <button type="button"
-                onclick="updateLabel()">
-            FLIP
-        </button>
-        <a href="@Url.Action("Index", "FlashCards",new { page = Model.PageNumber, nr = 2, know = 0 })">
-            <img src="~/images/X.png" width="10px" height="10px">
-            <a />
+    <ul class="words">
+        <li>
+            <div class="word">
+                @if (item.Image != null)
+                {
+                    <div class="img">
+                        <img src="~/images/@item.Image"  style="width:150px; height:150px; " />
+                    </div>
+                }
 
-    </td>
-    </tr>
+                <div id="word1">
+
+                    <p class="h1">      @Html.DisplayFor(modelItem => item.Word1) </p>
+
+                </div>
+
+                <div id="word2" style="display: none;">
+
+                    <p class="h1">    @Html.DisplayFor(modelItem => item.Word2) </p>
+
+                </div>
+
+            </div>
+        </li>
+       </ul>
+    <ul class="options">
+        <li>
+            <div class="option">
+                <a href="@Url.Action("Index", "FlashCards", new { page = Model.PageNumber, nr = nr  , know = 1 })">
+                    <img src="~/images/check.png" width="100px" height="100px" alt="I know what this mean/Znam to  ">
+                    <a />
+            </div>
+        </li>
+        <li>
+            
+                <button class="option" type="button"
+                        onclick="updateLabel()" style="width:36rem;">
+                    <p class="h1"> FLIP </p>
+                </button>
+            
+
+        </li>
+        <li>
+            <div class="option">
+                <a href="@Url.Action("Index", "FlashCards",new { page = Model.PageNumber, nr = nr, know = 0 })">
+                    <img src="~/images/X.png" width="100px" height="100px" alt="I dont't know what this mean / Nie wiem co to znaczy ">
+                    <a />
+            </div>
+        </li>
+    </ul>
 }
 
-    </table>
+
 <br />
 
 
 
 
-        @Html.PagedListPager(Model, page => Url.Action("Index",
-            new { page }) + "&nr=" + ViewData["nr"])
+
 <script type="text/javascript">
 
     function updateLabel() {
         var data = @Html.Raw(Json.Encode(Model.First()));
-        
+
                 var lbd = document.getElementById("word1");
                 var lbd2 = document.getElementById("word2");
         var synth = window.speechSynthesis;
@@ -71,26 +93,26 @@ console.log(word2);
 
                     var utterance1 = new SpeechSynthesisUtterance(word2);
                     utterance1.lang = 'en-US';
-                 
 
-                   
+
+
 
                 }
                 else {
 
-           
+
             lbd2.style.display = "none";
                     lbd.style.display = "block";
-                 
-                    
+
+
                     var utterance1 = new SpeechSynthesisUtterance(word1);
                     utterance1.lang = 'pl-PL';
-                  
+
             }
 
 
         synth.speak(utterance1);
-        
+
 
                 var amISpeaking = synth.speaking;
 

@@ -1,52 +1,68 @@
-﻿@model IEnumerable<Flashcards.Models.Answer>
-
+﻿
+@model dynamic
 @{
     ViewBag.Title = "Statistic";
+    var id = ViewData["id"];
+
 }
 
 <h2>Statistic</h2>
+@if (Context.User.IsInRole("Admin"))
+{
+<form action="~/Chapters/Statistic">
 
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
-<table class="table">
-    <tr>
+    <label for="cars">Choose a USER:</label>
 
-        <th>
-            @Html.DisplayNameFor(model => model.FlashCard.Word1)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.FlashCard.Word2)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CorrectAnswers)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.UserID)
-        </th>
-        <th></th>
-    </tr>
-
-@foreach (var item in Model) {
-<tr>
-    <td>
-        @Html.DisplayFor(modelItem => item.FlashCard.Word1)
-    </td>
-
-    <td>
-        @Html.DisplayFor(modelItem => item.FlashCard.Word2)
-    </td>
-
-    <td>
-        @Html.DisplayFor(modelItem => item.CorrectAnswers)
-    </td>
-    <td>
-        @Html.DisplayFor(modelItem => item.UserID)
-    </td>
+    <select name="user" id="user">
+        @foreach (Flashcards.Models.Profile profile in Model.Users)
+        {
+            <option value=@profile.ID>@profile.UserName</option>
+        }
 
 
-   
-</tr>
+    </select>
+    <input value=@id type="hidden" name="id" />
+    <input type="submit" value="Shearch"/>
+
+</form>
 }
 
-</table>
+
+    <table class="table">
+        <tr>
+
+            <th>
+                Word1
+            </th>
+            <th>
+              Word2
+            </th>
+            <th>
+                CorrectAnswers 
+            </th>
+           
+            <th></th>
+        </tr>
+
+        @foreach (Flashcards.Models.Answer answer in Model.Answers)
+        {
+            <tr>
+                <td>
+                    @answer.FlashCard.Word1
+                </td>
+
+                <td>
+                    @answer.FlashCard.Word2
+                </td>
+
+                <td>
+                   @answer.CorrectAnswers
+                </td>
+               
+
+
+
+            </tr>
+        }
+
+    </table>

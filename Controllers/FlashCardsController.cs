@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.UI.WebControls;
@@ -16,8 +17,10 @@ using WebGrease.Css.Extensions;
 
 namespace Flashcards.Controllers
 {
+   
     public class FlashCardsController : Controller
     {
+        private static Random rng = new Random();
         private FlashcardsContext db = new FlashcardsContext();
 
 
@@ -27,7 +30,7 @@ namespace Flashcards.Controllers
         public ActionResult Index(int? page,int? nr, int? know)
         {
             Random rnd = new Random();
-
+         
             var Chapter = db.Chapters.Find(nr);
             var flashCards = Chapter.FlashCards.ToList();
             int pageSize = 1;
@@ -131,7 +134,7 @@ namespace Flashcards.Controllers
                 int nrq = test.Questions.Count + 1;
                 Console.WriteLine(flashCards[pageNumber].Word1+" "+flashCards[pageNumber].Word2);
                 Question question = new Question { ID = nrq, flashCard = flashCards[pageNumber], Score = 1 };
-                test.Questions.Add(new Question { ID = nrq, flashCard = flashCards[pageNumber], Score = 0 });
+              
                  List<Answer> answers = db.Answers.Where(a => a.UserID == User.Identity.Name ).ToList();
                 Answer answer = answers.Find(a => a.FlashCard.ID == flashCards[pageNumber].ID);
                 if (answer == null)
@@ -235,7 +238,165 @@ namespace Flashcards.Controllers
             }
             return View(flashCard);
         }
+        [Authorize]
+        [HttpPost]
+        public ActionResult Test(int ?id, int? nr, int? IDCH  )
+        {
+            int i = 0;
+            Random random = new Random((int)DateTime.Now.Ticks+i);
+            if (IDCH == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Chapter chapter = db.Chapters.Find(IDCH);
+            if (chapter == null)
+            {
+                return HttpNotFound();
+            }
+            if(id!=null && nr!=null)
+            {
+                id=chapter.FlashCards.IndexOf(db.FlashCards.Find(id));
+                nr = chapter.FlashCards.IndexOf(db.FlashCards.Find(nr));
+            }
+           
+            if(nr!=null)
+            {
+                String userid = User.Identity.GetUserName();
+                List<Profile> profile = db.Profiles.ToList();
+                Profile profil = profile.Find(x => x.UserName == userid);
+                List<Test> tests = db.Tests.ToList();
+                var test = tests.OrderByDescending(c => c.ID).First();
+                int nrq = test.Questions.Count + 1;
+                List<Answer> answers = db.Answers.Where(c => c.UserID == User.Identity.Name).ToList();
+                Answer answer = answers.Find(c => c.FlashCard.ID == chapter.FlashCards[id.GetValueOrDefault()].ID);
+                Question question = null;
+                if (nr==id)
+                {
+                   
+                    question = new Question { ID = nrq, flashCard=chapter.FlashCards[id.GetValueOrDefault()], Score = 1 };
+                   if(answer==null)
+                    { 
+                    if (db.Answers.Count() == 0)
+                    {
+                        Answer answer1 = new Answer { ID = 0, FlashCard = chapter.FlashCards[id.GetValueOrDefault()], UserID = User.Identity.Name, CorrectAnswers = 1 };
+                        db.Answers.Add(answer1);
+                    }
+                    else
+                    {
+                        int answerid = db.Answers.OrderByDescending(G => G.ID).Select(G => G.ID).First();
+                        Answer answer1 = new Answer { ID = answerid, FlashCard = chapter.FlashCards[id.GetValueOrDefault()], UserID = User.Identity.Name, CorrectAnswers = 1 };
+                        db.Answers.Add(answer1);
+                    }
+                }
+                else
+                {
+                    answer.CorrectAnswers +=1;
+                    db.Entry(answer).State = EntityState.Modified;
+                }
 
+            }
+                else   if (nr != id)
+                {
+                    
+                  question = new Question { ID = nrq, flashCard = chapter.FlashCards[id.GetValueOrDefault()], Score = 0 };
+                    if (answer == null)
+                    {
+                        if (db.Answers.Count() == 0)
+                        {
+                            Answer answer1 = new Answer { ID = 0, FlashCard = chapter.FlashCards[id.GetValueOrDefault()], UserID = User.Identity.Name, CorrectAnswers = 0 };
+                            db.Answers.Add(answer1);
+                        }
+                        else
+                        {
+                            int answerid = db.Answers.OrderByDescending(G => G.ID).Select(G => G.ID).First();
+                            Answer answer1 = new Answer { ID = answerid, FlashCard = chapter.FlashCards[id.GetValueOrDefault()], UserID = User.Identity.Name, CorrectAnswers = 0 };
+                            db.Answers.Add(answer1);
+                        }
+                    }
+                    else
+                    {
+                        answer.CorrectAnswers = 0;
+                        db.Entry(answer).State = EntityState.Modified;
+                    }
+
+                        
+                }
+
+                db.Questions.Add(question);
+
+                test.Questions.Add(question);
+                profil.Tests.Add(test);
+
+
+
+                db.Entry(profil).State = EntityState.Modified;
+                db.Entry(test).State = EntityState.Modified;
+                db.SaveChanges();
+                if (db.Tests.OrderByDescending(t => t.ID).First().Questions.Count >= 20)
+                {
+
+                    return RedirectToAction("Stats/" + test.ID);
+                }
+            }
+            else
+            {
+                Test test123 = new Test();
+                db.Tests.Add(test123);
+                db.SaveChanges();
+
+            }
+            List<FlashCard> flashCards2 = new List<FlashCard>();
+
+            int a = 0;
+            do
+            {
+
+
+                a = rng.Next(chapter.FlashCards.Count());
+
+                
+
+
+                if (chapter.FlashCards.Count >= 6 && flashCards2.Contains(chapter.FlashCards[a]))
+                {
+
+                }
+                else
+                {
+                    flashCards2.Add(chapter.FlashCards[a]);
+                }
+            } while (flashCards2.Count < 6);
+            int b = rng.Next(6);
+            String ab = flashCards2[b].ID.ToString();
+            ViewData["ID"] = flashCards2[b].ID.ToString();
+            ViewData["IDCH"] = chapter.ID.ToString();
+
+            if (chapter.FlashCards.Count < 6)
+            {
+
+                return Content("Add flashcard to chapter to continue"); ;
+
+            }
+            return View(Shuffle(flashCards2));
+
+        }
+
+        
+
+        public static List<FlashCard> Shuffle( List<FlashCard> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                FlashCard value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+            return list;
+            
+        }
         // GET: FlashCards/Create
         public ActionResult Create()
         {
@@ -251,6 +412,7 @@ namespace Flashcards.Controllers
         {
             if (ModelState.IsValid)
             {
+                flashCard.UserID = User.Identity.Name;
                 db.FlashCards.Add(flashCard);
                 db.SaveChanges();
                 return RedirectToAction("Index");
@@ -258,6 +420,7 @@ namespace Flashcards.Controllers
 
             return View(flashCard);
         }
+       
 
         // GET: FlashCards/Edit/5
         public ActionResult Edit(int? id)
@@ -267,6 +430,7 @@ namespace Flashcards.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
             FlashCard flashCard = db.FlashCards.Find(id);
+           
             if (flashCard == null)
             {
                 return HttpNotFound();
@@ -285,9 +449,11 @@ namespace Flashcards.Controllers
             {
                 db.Entry(flashCard).State = EntityState.Modified;
                 db.SaveChanges();
-                return RedirectToAction("Index");
+                var id = db.Chapters.Where(c => c.FlashCards.Select(a => a.ID).Contains(flashCard.ID)).Select(a => a.ID).First();
+                return RedirectToAction("Details/" + id, "Chapters");
             }
-            return View(flashCard);
+            var id2 = db.Chapters.Where(c => c.FlashCards.Select(a => a.ID).Contains(flashCard.ID)).Select(a => a.ID).First();
+            return RedirectToAction("Details/" + id2, "Chapters");
         }
 
         // GET: FlashCards/Delete/5

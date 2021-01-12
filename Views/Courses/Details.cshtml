@@ -1,61 +1,72 @@
-﻿@model Flashcards.Models.Course
+﻿@model PagedList.IPagedList<Flashcards.Models.Chapter>
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
 
 @{
     ViewBag.Title = "Chapters";
+    var UserId = ViewData["UserId"] as String;
+    var ids = ViewData["id"] as String;
+    var id = int.Parse(ids);
 }
 
 
-
-<table class="table">
-    <tr>
-        <th>Chapters</th>
-    </tr>
-    @if (User.Identity.Name == Model.IDUSER || User.IsInRole("Admin"))
-    {
-    
-<form action="~/Courses/AddChapter" method="get">
-
-    <input type="text" name="Name" place <placeholder ="name your chapter" />
-
-    <input type="hidden" name="Id" value=@Model.ID />
-    <input type="submit" value="Add Chapter " />
-</form>
-<a />
-    }
-@foreach (var item in Model.Chapters)
+@using (Html.BeginForm("Details", "Courses", FormMethod.Get))
 {
-    <tr>
-        <td>
-            <a href="@Url.Action("Details" + "/" + item.ID, "Chapters")">
-                @Html.DisplayFor(modelItem => item.Name)
-                <a />
-        </td>
-        @if (User.Identity.Name == Model.IDUSER || User.IsInRole("Admin"))
-        {
-            <td>
-                <a href="@Url.Action("Delete" + "/" + item.ID, "Chapters")">
-                    Delete 
-                    <a />
-                    <a href="@Url.Action("Edit" + "/" + item.ID, "Chapters")">
-                        Edit 
-                        <a />
-            </td>
-        }
-
-
-    </tr>
+    <p>
+        Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+        <input class="form-control" type="submit" value="Search" />
+        <input type="hidden" value="@id" />
+    </p>
 }
-</table>
- <p>
-     @if (User.Identity.Name == Model.IDUSER || User.IsInRole("Admin"))
-     {
 
-     @Html.ActionLink("Delete", "Delete", new { id = Model.ID })
-         @Html.DisplayText("|");
-     @Html.ActionLink(" Delete", "Delete", new { id = Model.ID })
 
-         @Html.DisplayText("|");
-     @Html.ActionLink(" Back to List", "Index")
-     }
+<ul class="products">
+    @foreach (var item in Model)
+    {
+        <li>
+            <div class="product">
+                <a href="@Url.Action("Details" + "/" + item.ID, "Chapters")">
+                    <div class="product-name">
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </div>
+                    <a />
 
- </p>
+                    @if (User.Identity.Name == UserId || User.IsInRole("Admin"))
+                    {
+                        <div>
+                            <a href="@Url.Action("Delete" + "/" + item.ID, "Chapters")">
+                                Delete
+                                <a />
+                                <a href="@Url.Action("Edit" + "/" + item.ID, "Chapters")">
+                                    Edit
+                                    <a />
+                        </div>
+                    }
+            </div>
+
+        </li>
+
+
+
+    }
+
+</ul>
+
+@if (User.Identity.Name == UserId || User.IsInRole("Admin"))
+{<h1>Add Chapter</h1>
+
+    <form action="~/Courses/AddChapter" method="get">
+        <div class="form-group">
+            <input class="form-control type="text" name="Name" place placeholder="name your chapter" aria-required="true" aria-describedby="tel_info"/>
+
+            <input type="hidden" name="Id" value=@id />
+            <input class="btn btn-primary mb-2" type="submit" value="Add Chapter " />
+        </div>
+    </form>
+
+
+}
+Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index",
+    new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))

@@ -11,5 +11,7 @@ namespace Flashcards.Models
         public  virtual FlashCard FlashCard { get; set; }
         public int CorrectAnswers { get; set; }
         public String UserID { get; set; }
+        public int MyProperty { get; set; }
+
     }
 }

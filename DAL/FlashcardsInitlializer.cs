@@ -15,9 +15,9 @@ namespace Flashcards.DAL
         {
             var flashCards = new List<FlashCard>
             {
-                new FlashCard{ID=1,Word1="Super",Word2="Nice" },
-                 new FlashCard{ID=2,Word1="żenada ",Word2="Cringe" },
-                   new FlashCard{ID=3,Word1="Arcydzieło  ",Word2="Masterpice" }
+                new FlashCard{ID=1,Word1="Super",Word2="Nice",UserID="Admin@gmail.com" },
+                 new FlashCard{ID=2,Word1="żenada ",Word2="Cringe",UserID="Admin@gmail.com" },
+                   new FlashCard{ID=3,Word1="Arcydzieło  ",Word2="Masterpice",UserID="Admin@gmail.com" }
 
             };
 
@@ -26,16 +26,16 @@ namespace Flashcards.DAL
             context.SaveChanges();
             var chapters = new List<Chapter>
             {
-                new Chapter{ ID=1,Name="Chapter1",FlashCards=new List<FlashCard> {flashCards[0],flashCards[1]}},
-                new Chapter{ID=2,Name="Chapter2",FlashCards=new List<FlashCard> { flashCards[2]} }
+                new Chapter{ ID=1,Name="Chapter1",FlashCards=new List<FlashCard> {flashCards[0],flashCards[1]},UserID="Admin@gmail.com"},
+                new Chapter{ID=2,Name="Chapter2",FlashCards=new List<FlashCard> { flashCards[2]},UserID="Admin@gmail.com" }
 
             };
             chapters.ForEach(m => context.Chapters.Add(m));
             context.SaveChanges();
             var courses = new List<Course>
             {
-                new Course{ ID=1,Name="English-Polish Course",Chapters=new List<Chapter> {chapters[1]}},
-                new Course{ID=2,Name="History Course"}
+                new Course{ ID=1,Name="English B1 course",Chapters=new List<Chapter> {chapters[1]},IDUSER="Admin@gmail.com"},
+                new Course{ID=2,Name="English B2 course",IDUSER="Admin@gmail.com"}
 
             };
             courses.ForEach(m => context.Courses.Add(m));

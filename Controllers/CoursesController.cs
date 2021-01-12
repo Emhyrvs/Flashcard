@@ -6,9 +6,10 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI;
 using Flashcards.DAL;
 using Flashcards.Models;
-
+using PagedList;
 namespace Flashcards.Controllers
 {
     public class CoursesController : Controller
@@ -16,24 +17,62 @@ namespace Flashcards.Controllers
         private FlashcardsContext db = new FlashcardsContext();
 
         // GET: Courses
-        public ActionResult Index()
-        {
-            return View(db.Courses.ToList());
+        [Authorize]
+        public ViewResult Index(string searchString, int? page, string currentFilter)
+        {   
+            if (searchString != null)
+            {
+                page = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewBag.CurrentFilter = searchString;
+            var courses = from s in db.Courses 
+                           select s;
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                courses = courses.Where(s => s.Name.Contains(searchString));
+                                       
+            }
+            courses  = courses .OrderBy(s => s.Name);
+            int pageSize = 9;
+            int pageNumber = (page ?? 1);
+            return View(courses.ToPagedList(pageNumber, pageSize));
+            
         }
 
         // GET: Courses/Details/5
-        public ActionResult Details(int? id)
+        public ViewResult Details(int? id, string searchString, int? page, string currentFilter)
         {
-            if (id == null)
+            if (searchString != null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                page = 1;
             }
-            Course course = db.Courses.Find(id);
-            if (course == null)
+            else
             {
-                return HttpNotFound();
+                searchString = currentFilter;
+            
+          
             }
-            return View(course);
+            ViewBag.CurrentFilter = searchString;
+            var Course = db.Courses.Where(i => i.ID == id).First();
+            ViewData["UserId"] = Course.IDUSER.ToString();
+            ViewData["id"] = Course.ID.ToString();
+
+            IEnumerable<Chapter> chapters = Course.Chapters.ToList();
+            
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                chapters = chapters.Where(a=>a.Name.Contains(searchString));
+
+            }
+            chapters = chapters.ToList().OrderBy(s => s.Name);
+            int pageSize = 9;
+            int pageNumber = (page ?? 1);
+            return View(chapters.ToPagedList(pageNumber, pageSize));
         }
         public ActionResult  AddChapter (string Id, string Name)
         {
@@ -129,6 +168,7 @@ namespace Flashcards.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             Course course = db.Courses.Find(id);
+            course.Chapters.Clear();
             db.Courses.Remove(course);
             db.SaveChanges();
             return RedirectToAction("Index");

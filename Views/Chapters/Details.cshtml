@@ -16,96 +16,124 @@
 
 
 
-    <table class="table">
-        <tr>
-            <th>Flashcard</th>
-            <form action="~/FlashCards/Index" method="get">
 
-                <input type="hidden" name="page" placeholder="super" />
+@if (Model.FlashCards.Count > 9)
+{
+    <h1>Option</h1>
+    <ul class="products">
 
-                <input type="hidden" name="nr" value=@Model.ID />
-                <input type="submit" value="Start FlashCard" />
-            </form>
-        </tr>
-        <table class="table">
-            <tr>
-                <th>Take test </th>
-                <form action="~/FlashCards/Test" method="get">
+        <li>
+            <div class="product">
+                <h1>Start Flashcard</h1>
+                <form action="~/FlashCards/Index" method="get">
 
                     <input type="hidden" name="page" placeholder="super" />
 
                     <input type="hidden" name="nr" value=@Model.ID />
-                    <input type="submit" value="Start Test" />
+                    <input type="submit" value="Start FlashCard" class="btn btn-primary" />
                 </form>
-            </tr>
+            </div>
+        </li>
 
-            <table class="table">
-                <tr>
-                    <th>Flashcard</th>
-                    <form action="~/Chapters/Statistic" method="get">
-
-                        <input type="hidden" name="id" value=@Model.ID />
-                        <input type="submit" value="Show Statistic" />
-                    </form>
-                </tr>
+        <li>
+            <div class="product">
+                <form action="~/FlashCards/Test" method="post">
+                    <h1>Start Test</h1>
 
 
-                @foreach (var item in Model.FlashCards)
-                {
-                    <tr>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Word1)
-                        </td>
-                        <td>
-                            <img src="~/images/@item.Image" />
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Word1)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Word2)
-                        </td>
-                        @if (User.Identity.Name == Model.UserID || User.IsInRole("Admin"))
-                        {
-                            <td>
-                                <a href="@Url.Action("Delete" + "/" + item.ID, "FlashCards")">
-                                    Delete
-                                    <a />
-                                    <a href="@Url.Action("Edit" + "/" + item.ID, "FlashCards")">
-                                        Edit
-                                        <a />
-                            </td>
-                        }
-                    </tr>
+                    <input type="hidden" name="IDCH" value=@Model.ID />
+                    <input type="submit" value="Start Test" class="btn btn-primary" />
+                </form>
+            </div>
+        </li>
+        <li>
+            <div class="product">
+                <form action="~/Chapters/Statistic" method="get">
+                    <h1>Show Statistics</h1>
+                    <input type="hidden" name="id" value=@Model.ID />
+                    <input type="submit" value="show statistics" class="btn btn-primary" />
+                </form>
+            </div>
+        </li>
+    </ul>
+    <p class="h1">Flashcard</p>
+}
+@if (Model.FlashCards.Count < 10)
+{
+    <h1>ADD more flashcard to see option </h1>
+}
 
-                }
-                <div></div>
+<table class="table">
 
 
-                @using (Html.BeginForm("Upload", "Chapters", FormMethod.Post, new { enctype = "multipart/form-data" }))
-                {
-                    <span>Select File:</span>
-                    <input type="file" name="postedFile" />
-                    <hr />
-                    <input type="hidden" name="Id" value=@Model.ID />
-                    <input type="submit" value="Upload" />
-                    <br />
-                    <span style="color:green">@ViewBag.Message</span>
-                }
-            </table>
+    @foreach (var item in Model.FlashCards)
+    {
+        <tr>
 
-            @using (Html.BeginForm("AddFlashCard", "Chapters", FormMethod.Post, new { enctype = "multipart/form-data" }))
+
+            <td>
+                @Html.DisplayFor(modelItem => item.Word1)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Word2)
+            </td>
+            @if (@item.Image != null)
             {
-                <input type="text" name="Word1" placeholder="Word1" />
-
-                <input type="text" name="Word2" placeholder="Word2" />
-
-                <input type="file" name="Imagefile" />
-                <input type="hidden" name="ID" value=@Model.ID />
-                <input type="submit" value="Add Flashcard" />
+                <td>
+                    <img src="~/images/@item.Image" / style="width:50px; height:50px; ">
+                </td>
             }
-            </form>
-            <p>
-                @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
-                @Html.ActionLink("Back to List", "Index")
-            </p>
+            else
+            {
+                <td></td>
+            }
+            @if (User.Identity.Name == item.UserID || User.IsInRole("Admin"))
+            {
+                <td>
+                    <a href="@Url.Action("Delete" + "/" + item.ID, "FlashCards")">
+                        Delete
+                        <a />
+                        <a href="@Url.Action("Edit" + "/" + item.ID, "FlashCards")">
+                            Edit
+                            <a />
+                </td>
+            }
+        </tr>
+
+    }
+
+</table>
+<p class="h1">Select File with Flashcards: </p>
+<br />
+@using (Html.BeginForm("Upload", "Chapters", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <span>Select File with Flashcards:</span>
+    <input type="file" name="postedFile" />
+    <hr />
+    <input type="hidden" name="Id" value=@Model.ID />
+    <input type="submit" value="Upload" />
+    <br />
+    <span style="color:green">@ViewBag.Message</span>
+}
+
+<br />
+<p class="h1">Add flashcard</p>
+@using (Html.BeginForm("AddFlashCard", "Chapters", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <div class="row">
+        <div class="col">
+            <input type="text" name="Word1" class="form-control" placeholder="Word in Polish" aria-required="true" aria-describedby="tel_info">
+        </div>
+        <div class="col">
+            <input type="text" name="Word2" class="form-control" placeholder="Word in English" aria-required="true" aria-describedby="tel_info">
+        </div>
+    </div>
+
+    <br />
+    <label for="filea">Add image to flashcard</label>
+    <input type="file" name="Imagefile" class="for" />
+    <br />
+    <input type="hidden" name="ID" value=@Model.ID />
+    <input type="submit" value="Add Flashcard" class="btn btn-primary" />
+}
+

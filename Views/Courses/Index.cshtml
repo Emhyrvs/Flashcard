@@ -1,36 +1,55 @@
-﻿@model IEnumerable<Flashcards.Models.Course>
+﻿@model PagedList.IPagedList<Flashcards.Models.Course>
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
 
 @{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Chapters";
 }
 
-<h2>Index</h2>
-
-<p>
+<h1>
     @Html.ActionLink("Create New", "Create")
-</p>
-<table class="table">
-    <tr>
-        <th>
+</h1>
 
-
-
-            @Html.DisplayNameFor(model => model.Name)
-        </th>
-        <th></th>
-    </tr>
-
-@foreach (var item in Model) {
-    <tr>
-        <td>
-            <a href="@Url.Action("Details"+"/"+item.ID, "Courses")">
-                @Html.DisplayFor(modelItem => item.Name)
-                <a />
-
-</td>
-      
-       
-    </tr>
+@using (Html.BeginForm("Index", "Courses", FormMethod.Get))
+{
+    <p>
+        Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+        <input class="form-control" type="submit" value="Search" />
+    </p>
 }
+<ul class="products">
+    @foreach (var item in Model)
+    {
+    <li>
+        <div class="product">
 
-</table>
+            <a href="@Url.Action("Details"+"/"+item.ID, "Courses")">
+                <div class="product-name">
+                    @Html.DisplayFor(modelItem => item.Name)
+                </div>
+                <a />
+                @if (User.Identity.Name == item.IDUSER || User.IsInRole("Admin"))
+                {
+
+                    @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+
+                    @Html.ActionLink(" Edit ", "Edit", new { id = item.ID })
+
+
+                }
+
+
+</div>
+       
+    </li>
+
+
+
+    }
+
+</ul>
+<br />
+Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index",
+    new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))

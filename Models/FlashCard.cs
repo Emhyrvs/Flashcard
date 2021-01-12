@@ -12,9 +12,10 @@ namespace Flashcards.Models
         public String UserID { get; set; }
         public String Word2 { get; set; }
         public String Image  { get; set; }
+
+
      
 
 
-
-    }
+}
 }
